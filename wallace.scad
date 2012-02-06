@@ -30,7 +30,7 @@ motor_shaft_size = 5;
 
 //Comment out all of the lines in the following section to render the assembled machine. Uncomment one of them to export that part for printing.
 
-//!base_end();
+!for(b = [0:1]) translate([b*60,0,0])  base_end()
 //!for(b = [0:1]) mirror([0, b, 0]) for(a = [-1,1]) translate([a * bearing_size / 4, bearing_size - (bearing_size * 2/3) * a, 0]) rotate(90 + 90 * a) y_bearing_retainer();
 //!for(b = [0:1]) mirror([0, b, 0]) for(a = [-1,1]) translate([a * -7.5, 18 - 5 * a, 0]) rotate(180 + 90 * a) bed_mount();
 //!x_end(2);
