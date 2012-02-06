@@ -12,7 +12,7 @@ bearing_sizes = [12.5,15,15]; //LM6UU, LM8SU, LM8UU
 bearing_lengths = [20,17,24]; //LM6UU, LM8SU, LM8UU
 motor_screw_spacings = [26,31]; //Nema14, Nema17
 motor_casings = [38,45]; //Nema14, Nema17
-end_heights = [40,50]; // Nema14, Nema17
+end_heights = [40,55]; // Nema14, Nema17
 yz_motor_distance = 25;
 bed_mount_height = 16;
 //x_rod_spacing = motor_screw_spacing + 3 + rod_size;
@@ -56,7 +56,7 @@ motor_shaft_size = 5;
 	translate([40, rod_size + bearing_size / 2 + 1 - rod_size / 2 + 2, 60]) {
 		rotate([90, 0, 90]) x_carriage();
 		translate([x_carriage_width / 2 + carriage_extruder_offset, -14 - bearing_size / 2 - 4, x_rod_spacing / 2 + bearing_size / 2 + 4]) {
-			rotate([90, 0, 180]) translate([10.57, 30.3, -14]) import_stl("gregs/gregs_accessible_wade-wildseyed_mount.stl", convexity = 5);
+			rotate([90, 0, 180]) translate([10.57, 30.3, -14]) import("gregs/gregs_accessible_wade-wildseyed_mount.stl", convexity = 5);
 			%rotate(180 / 8) cylinder(r = 2, h = 150, center = true, $fn = 8);
 		}
 	}
@@ -68,7 +68,6 @@ motor_shaft_size = 5;
 	for(side = [0, 1]) mirror([0, side, 0]) translate([0, -motor_casing / 2 - rod_size * 2 - 10, -bearing_size - end_height + rod_size * 1.5]) rotate([90, 0, 0]) foot();
 	translate([-yz_motor_distance / 2 + rod_size, 0, 210 - end_height]) rotate([180, 0, 90]) z_top_clamp(0);
 
-	
 // INTERNAL Variables
 rod_size = rod_sizes[rod_type];
 rod_nut_size = rod_nut_sizes[rod_type];
@@ -76,14 +75,14 @@ bearing_size = bearing_sizes[bearing_type];
 bearing_length = bearing_lengths[bearing_type]; 
 motor_screw_spacing = motor_screw_spacings[motor_type]; 
 motor_casing = motor_casings[motor_type]; 
-end_height = end_heights[end_height];
+end_height = end_heights[motor_type];
 
-// ratio for converting diameter to apothem radius
-da6 = (1 / cos(180 / 6)) / 2;
-da8 = (1 / cos(180 / 8)) / 2;
-
+// ratio for converting diameter to apothem
+da6 = 1 / cos(180 / 6) / 2;
+da8 = 1 / cos(180 / 8) / 2;
 
 // all MODULES 
+
 module z_top_clamp() difference() {
 	union() {
 		linear_extrude(height = rod_size * 2 + gusset_size, convexity = 5) difference() {
@@ -115,7 +114,6 @@ module foot() difference() {
 	translate([0, 0, -rod_size / 16]) cylinder(r1 = rod_size * 3/4, r2 = rod_size / 4, h = rod_size / 2, $fn = 12);
 	translate([0, 0, rod_size / 2 + rod_size / 16]) cylinder(r2 = rod_size * 3/4, r1 = rod_size / 4, h = rod_size / 2, $fn = 12);
 }
-
 
 module idler_pulley(double_bearing = true) difference() {
 	intersection() {
@@ -180,8 +178,8 @@ module leadscrew_coupler() difference() {
 	}
 	translate([0, 0, 3]) rotate([-90, 0, 90]) {
 		cylinder(r = m3_size * da6, h = motor_screw_spacing / 2 + 1);
-		%rotate(90) cylinder(r = 6 / 2, h = 5.5, $fn = 6);
-		translate([0, 0, 12]) cylinder(r = m3_nut_size * da6, h = motor_screw_spacing / 2);
+		rotate(90) cylinder(r = m3_nut_size / 2, h = 5.5, $fn = 6);
+		translate([0, 0, 12]) cylinder(r = m3_size * da6 * 2, h = motor_screw_spacing / 2);
 		translate([-2.85, -3, 0]) cube([5.5, 10, 5.7]);
 	}
 	translate([0, 0, 10]) cylinder(r = rod_nut_size / 2, h = rod_nut_size + 1, $fn = 6);
@@ -250,7 +248,7 @@ module x_carriage() difference() {
 	// screw holes
 	translate([bearing_size / 2 + 4 + 10, 5 - pulley_size / 2, bearing_length / 2 + 2]) rotate([90, 0, 0]) {
 		cylinder(r = m3_size * da6, h = x_rod_spacing + bearing_size + 10, center = true, $fn = 6);
-		rotate([180, 0, 0]) cylinder(r = m3_nut_size * da6, h = x_rod_spacing + bearing_size + 10, center = false, $fn = 6);
+		rotate([180, 0, 0]) cylinder(r = m3_size * da6 * 2, h = x_rod_spacing + bearing_size + 10, center = false, $fn = 6);
 		translate([0, 0, x_rod_spacing / 2 + bearing_size / 2 + 6 - pulley_size / 2]) cylinder(r = m3_nut_size * da6, h = x_rod_spacing + bearing_size + 10, center = false, $fn = 6);
 	}
 	//#for(side = [1, -1]) translate([-bearing_size / 2 - 4 - 14, 0, x_carriage_width / 2 + carriage_extruder_offset + side * 25]) rotate([90, 0, 0]) cylinder(r = 4.1, h = x_rod_spacing - 10, center = true, $fn = 6);
@@ -276,7 +274,7 @@ module x_end(motor = 0) mirror([(motor == 0) ? 1 : 0, 0, 0]) difference() {
 				translate([motor_casing / 2, (x_rod_spacing + 8 + rod_size) / 2, 0]) {
 					circle(motor_screw_spacing / 2);
 					for(x = [1, -1]) for(y = [1, -1]) translate([x * motor_screw_spacing / 2, y * motor_screw_spacing / 2, 0]) circle(m3_size * da6, $fn = 6);
-					translate([-(motor_casing * 1.5 - motor_screw_spacing), (motor > 1) ? (motor_casing /2 - motor_screw_spacing) : 0, 0]) square([motor_casing, x_rod_spacing + 8 + rod_size]);
+					translate([-(motor_casing * 1.5 - motor_screw_spacing), (motor > 1) ? (motor_casing / 2 - motor_screw_spacing) : 0, 0]) square([motor_casing, x_rod_spacing + 8 + rod_size]);
 				}
 			}
 			// Belt
@@ -288,7 +286,7 @@ module x_end(motor = 0) mirror([(motor == 0) ? 1 : 0, 0, 0]) difference() {
 				}
 				circle(pulley_size / 2);
 				translate([0, -pulley_size / 2, 0]) square([200.5, pulley_size]);
-				translate([200.5, 0, 0]) circle(pulley_size/2);
+				translate([200.5, 0, 0]) circle(pulley_size / 2);
 			}
 
 		}
@@ -370,7 +368,7 @@ module y_bearing_retainer() intersection() {
 		//screw holes
 		for(side = [1, -1]) translate([side * (yz_motor_distance + motor_casing - motor_screw_spacing) / 2, 0, 5]) rotate(90) rotate([90, 0, 90]) {
 			cylinder(r = m3_size * da6, h = bearing_size, center = true, $fn = 6);
-			translate([0, 0, bearing_size * sqrt(2) / 4 - 5]) rotate([180, 0, 0]) cylinder(r = m3_nut_size/2, h = bearing_size, $fn = 30);
+			translate([0, 0, bearing_size * sqrt(2) / 4 - 5]) rotate([180, 0, 0]) cylinder(r = m3_size, h = bearing_size, $fn = 30);
 		}
 	}
 	translate([0, 0, 5]) rotate(90) rotate([90, 0, 90]) cylinder(r = (yz_motor_distance + motor_casing - motor_screw_spacing + 10) / 2, h = bearing_size + 10, center = true, $fn = 6);
@@ -399,8 +397,8 @@ module base_end() difference() {
 		for(h = [8, end_height - motor_casing / 4 - 8]) translate([0, 0, h]) rotate([90, 0, 90]) {
 			cylinder(r = m3_size * da6, h = yz_motor_distance + motor_casing, center = true, $fn = 6);
 			translate([0, 0, -rod_size / 2 - 3]) cylinder(r = m3_nut_size* da6, h = yz_motor_distance + motor_casing, $fn = 6);
-			translate([0, 0, 0]) cylinder(r = m3_nut_size/2+0.5, h = yz_motor_distance + motor_casing, $fn = 6);
-			translate([0, 0, -rod_size / 2 - 8]) rotate([0, 180, 0]) cylinder(r = m3_nut_size/2+0.5, h = yz_motor_distance + motor_casing, $fn = 6);
+			translate([0, 0, 0]) cylinder(r = m3_nut_size / 2 + 0.5, h = yz_motor_distance + motor_casing, $fn = 6);
+			translate([0, 0, -rod_size / 2 - 8]) rotate([0, 180, 0]) cylinder(r = m3_size * da6 * 2, h = yz_motor_distance + motor_casing, $fn = 6);
 		}
 	}
 	translate([-yz_motor_distance / 2 + bearing_size / 2, 0, -bearing_size * sqrt(2) / 4]) rotate([90, -45, 0]) {
